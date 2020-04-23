@@ -1,11 +1,8 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include <stdbool.h>
-#include "BinarySequence.h"
-#include "coding.h"
 #include "PriorityQueue.h"
+#include "CodingTree.h"
 
 static const size_t ASCII_SIZE = 127;
 
@@ -41,8 +38,7 @@ CodingTree* ctMerge(CodingTree* leftTree, CodingTree* rightTree){
 
     char* left_char;
     char* right_char;
-    
-    
+
     parent->character = malloc(sizeof(left_char)+sizeof(right_char));
     if(parent->character == NULL){
         return NULL;
@@ -76,8 +72,7 @@ void ctFree(CodingTree* tree){
 }
 
 CodingTree* ctHuffman(const double* frequencies){
-    
-    PriorityQueue* Q = pqCreate(/*Je sais pas quoi mettre*/, frequencies, ASCII_SIZE);
+    PriorityQueue* Q = pqCreate(NULL, frequencies, ASCII_SIZE);
 
     for(int i = 1; i < ASCII_SIZE-1; i++){
         double** left = pqExtractMin(Q);
@@ -87,8 +82,30 @@ CodingTree* ctHuffman(const double* frequencies){
         CodingTree* right_leaf = ctCreateLeaf(right[0][0], right[0][1]);
 
         CodingTree* parent = ctMerge(left_leaf, right_leaf);
-        pqInsert(Q,parent,/*euhhh*/);
+        //pqInsert(Q,parent,/*euhhh*/);
     }
     
     return pqExtractMin(Q);
+}
+
+BinarySequence** ctCodingTable(const CodingTree* tree) {
+    return NULL;
+}
+
+/* ------------------------------------------------------------------------- *
+ * Decode a SINGLE binary code into a SINGLE character
+ *
+ * PARAMETERS
+ * tree             The conding tree
+ * encodedSequence  The code to decode
+ * start            The first bit to read to decode the character
+ *
+ * RETURN
+ * decoded A structure containing the decoded character and the index of the
+ *         next bit to read for the next character decoding.
+ * ------------------------------------------------------------------------- */
+Decoded ctDecode(const CodingTree* tree, const BinarySequence* encodedSequence,
+                 size_t start) {
+    Decoded d;
+    return d;
 }

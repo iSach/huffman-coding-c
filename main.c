@@ -3,10 +3,13 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "CodingTree.h"
 #include "CharVector.h"
 #include "coding.h"
+
+#include "PriorityQueue.h"
 
 static const size_t ASCII_SIZE = 127;
 static const size_t BUFFER_SIZE = 1024;
@@ -29,15 +32,13 @@ static const size_t CHAR_VECTOR_INIT_CAP = 100;
  * frequencies  An array of size 127 with the frequency of each ascii
  *              charater or NULL in case of error.
  * ------------------------------------------------------------------------- */
-static double* csvToFrequencies(const char* filepath)
-{
+static double* csvToFrequencies(const char* filepath) {
     char buffer[BUFFER_SIZE];
 
-    FILE* fp = fopen(filepath , "r");
+    FILE* fp = fopen(filepath, "r");
 
-    double* frequencies = (double*)calloc(ASCII_SIZE, sizeof(double));
-    if(!frequencies)
-    {
+    double* frequencies = (double*) calloc(ASCII_SIZE, sizeof(double));
+    if (!frequencies) {
         fclose(fp);
         return NULL;
     }
@@ -46,23 +47,22 @@ static double* csvToFrequencies(const char* filepath)
     char* nextPart;
 
     // Read line by line
-    while(fgets(buffer, BUFFER_SIZE, fp))
-    {
+    while (fgets(buffer, BUFFER_SIZE, fp)) {
         // Parse char and frequency
-        character = (char)strtol(buffer, &nextPart, 10);
-        if(buffer == nextPart) // Could not parse char ascii code
+        character = (char) strtol(buffer, &nextPart, 10);
+        if (buffer == nextPart) // Could not parse char ascii code
         {
             free(frequencies);
             fclose(fp);
             return NULL;
         }
 
-        while(!isdigit(*nextPart) && (*nextPart) != '.') // Skip space and comma
+        while (!isdigit(*nextPart) &&
+               (*nextPart) != '.') // Skip space and comma
             nextPart++;
 
-        frequencies[(size_t)character] = strtod(nextPart, NULL);;
+        frequencies[(size_t) character] = strtod(nextPart, NULL);;
     }
-
 
 
     fclose(fp);
@@ -80,15 +80,13 @@ static double* csvToFrequencies(const char* filepath)
  * RETURN
  * binarySequence   The binary sequence, or NULL in case of error
  * ------------------------------------------------------------------------- */
-static BinarySequence* readBinarySequence(const char* path)
-{
+static BinarySequence* readBinarySequence(const char* path) {
     FILE* binFile = fopen(path, "rb");
-    if(!binFile)
+    if (!binFile)
         return NULL;
 
     BinarySequence* binSeq = biseCreate();
-    if(!binSeq)
-    {
+    if (!binSeq) {
         fclose(binFile);
         return NULL;
     }
@@ -96,13 +94,14 @@ static BinarySequence* readBinarySequence(const char* path)
     bool success = true;
     size_t read_size;
     unsigned char buffer[BUFFER_SIZE];
-    while(success && (read_size = fread(buffer, sizeof(unsigned char), BUFFER_SIZE, binFile)) > 0)
+    while (success &&
+           (read_size = fread(buffer, sizeof(unsigned char), BUFFER_SIZE,
+                              binFile)) > 0)
         for (size_t i = 0; i < read_size && success; ++i)
             success = biseAddByte(binSeq, buffer[i]);
 
     fclose(binFile);
-    if(!success)
-    {
+    if (!success) {
         biseFree(binSeq);
         binSeq = NULL;
     }
@@ -121,15 +120,13 @@ static BinarySequence* readBinarySequence(const char* path)
  * RETURN
  * charVector       The CharVector containing the data or NULL in case of error
  * ------------------------------------------------------------------------- */
-static CharVector* readAsciiText(const char* path)
-{
+static CharVector* readAsciiText(const char* path) {
     FILE* ascii = fopen(path, "r");
-    if(!ascii)
+    if (!ascii)
         return NULL;
 
     CharVector* vec = cvCreate(CHAR_VECTOR_INIT_CAP);
-    if(!vec)
-    {
+    if (!vec) {
         fclose(ascii);
         return NULL;
     }
@@ -138,16 +135,14 @@ static CharVector* readAsciiText(const char* path)
 
     size_t i;
     bool success = true;
-    while(success && fgets(buffer, BUFFER_SIZE, ascii))
-    {
+    while (success && fgets(buffer, BUFFER_SIZE, ascii)) {
         i = 0;
-        while(success && buffer[i])
+        while (success && buffer[i])
             success = cvAdd(vec, buffer[i++]);
     }
 
     fclose(ascii);
-    if(!success)
-    {
+    if (!success) {
         cvFree(vec);
         vec = NULL;
     }
@@ -169,15 +164,13 @@ static CharVector* readAsciiText(const char* path)
  * success      true in case of succes, false otherwise
  * ------------------------------------------------------------------------- */
 static bool readAndDecode(const char* inputpath, const CodingTree* tree,
-                          const char* outptPath, unsigned char eof)
-{
-    FILE* output = (!outptPath)? stdout: fopen(outptPath, "wb");
+                          const char* outptPath, unsigned char eof) {
+    FILE* output = (!outptPath) ? stdout : fopen(outptPath, "wb");
 
     bool success = true;
 
     BinarySequence* source = readBinarySequence(inputpath);
-    if(!source)
-    {
+    if (!source) {
         fprintf(stderr, "Could not read binary sequence from file '%s'.\n",
                 inputpath);
         fclose(output);
@@ -185,19 +178,18 @@ static bool readAndDecode(const char* inputpath, const CodingTree* tree,
     }
 
     CharVector* dest = cvCreate(CHAR_VECTOR_INIT_CAP);
-    if(!dest)
-    {
+    if (!dest) {
         fprintf(stderr, "Constructor `cvCreate` failed.\n");
         success = false;
     }
 
     success = success && decode(source, dest, tree, eof);
 
-    if(!success)
+    if (!success)
         fprintf(stderr, "Could not decode binary sequence from file '%s'.\n",
                 inputpath);
     else
-        for(size_t i=0; i < cvSize(dest); i++)
+        for (size_t i = 0; i < cvSize(dest); i++)
             fprintf(output, "%c", cvGet(dest, i));
 
 
@@ -222,15 +214,14 @@ static bool readAndDecode(const char* inputpath, const CodingTree* tree,
  * success      true in case of succes, false otherwise
  * ------------------------------------------------------------------------- */
 static bool readAndEncode(const char* inputpath, const CodingTree* tree,
-                          const char* outptPath, bool debug, unsigned char eof)
-{
-    FILE* output = (!outptPath)? stdout: fopen(outptPath, "wb");
+                          const char* outptPath, bool debug,
+                          unsigned char eof) {
+    FILE* output = (!outptPath) ? stdout : fopen(outptPath, "wb");
 
     bool success = true;
 
     CharVector* source = readAsciiText(inputpath);
-    if(!source)
-    {
+    if (!source) {
         fprintf(stderr, "Could not read ascii text from file '%s'.\n",
                 inputpath);
         fclose(output);
@@ -239,27 +230,22 @@ static bool readAndEncode(const char* inputpath, const CodingTree* tree,
 
 
     BinarySequence* dest = biseCreate();
-    if(!dest)
-    {
+    if (!dest) {
         fprintf(stderr, "Constructor `biseCreate` failed.\n");
         success = false;
     }
 
     success = success && encode(source, dest, tree, eof);
 
-    if(!success)
+    if (!success)
         fprintf(stderr, "Could not encode text from file '%s'.\n",
                 inputpath);
-    else
-    {
-        if(debug)
-        {
+    else {
+        if (debug) {
             Binary bit;
-            for(size_t i=0; i < biseGetNumberOfBits(dest); i++)
-            {
+            for (size_t i = 0; i < biseGetNumberOfBits(dest); i++) {
                 bit = biseGetBit(dest, i);
-                switch(bit)
-                {
+                switch (bit) {
                     case ZERO:
                         fprintf(output, "%c", '0');
                         break;
@@ -272,7 +258,7 @@ static bool readAndEncode(const char* inputpath, const CodingTree* tree,
             }
 
         } else {
-            for(size_t i=0; i < biseGetNumberOfBytes(dest); i++) {
+            for (size_t i = 0; i < biseGetNumberOfBytes(dest); i++) {
                 unsigned char currByte = biseGetByte(dest, i, ZERO);
                 fwrite(&currByte, sizeof(unsigned char), 1, output);
             }
@@ -286,6 +272,54 @@ static bool readAndEncode(const char* inputpath, const CodingTree* tree,
     cvFree(source);
     fclose(output);
     return success;
+}
+
+// test
+int main() {
+    size_t len = 5;
+    int* numbers = malloc(len * sizeof(int));
+    for (int i = 0; i < len; i++) {
+        numbers[i] = i + 1;
+    }
+
+    const int** entries = malloc(len * sizeof(int*));
+    for (int i = 0; i < len; i++) {
+        entries[i] = &(numbers[i]);
+    }
+
+    double* prior = malloc(len * sizeof(double));
+    prior[0] = 2.1;
+    prior[1] = 7.3;
+    prior[2] = 4.5;
+    prior[3] = 1.7;
+    prior[4] = 3.6;
+
+    PriorityQueue* queue = pqCreate((const void**) entries, prior, len);
+
+    int* a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
+
+    int new = 7;
+
+    a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
+
+    pqInsert(queue, &new, 3.7);
+
+    a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
+
+    a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
+
+    a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
+
+    a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
+
+    a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
 }
 
 
@@ -314,12 +348,10 @@ static bool readAndEncode(const char* inputpath, const CodingTree* tree,
  * RETURN
  * EXIT_SUCCESS|EXIT_FAILURE
  * ------------------------------------------------------------------------- */
-int main(int argc, char** argv)
-{
+int main2(int argc, char** argv) {
 
     /* ---------------------- PARSING COMMAND LINE ARGS --------------------- */
-    if(argc < 2 || argc > 7)
-    {
+    if (argc < 2 || argc > 7) {
         fprintf(stderr, "USAGE: %s [-e] [-d] [-f <eofChar>] [-o <outptPath>] "
                         "<textPath> <csvPath>\n", argv[0]);
         return EXIT_FAILURE;
@@ -327,30 +359,28 @@ int main(int argc, char** argv)
 
     bool decode = true;
     bool debug = false;
-    unsigned char eofChar = (char)28;
+    unsigned char eofChar = (char) 28;
     const char* outputPath = NULL;
     const char* textPath = NULL;
     const char* csvPath = NULL;
 
     int i = 0;
-    while(++i < argc)
-    {
-        if(strcmp(argv[i], "-e") == 0) {
+    while (++i < argc) {
+        if (strcmp(argv[i], "-e") == 0) {
             decode = false;
-        } else if(strcmp(argv[i], "-d") == 0) {
+        } else if (strcmp(argv[i], "-d") == 0) {
             debug = true;
-        } else if(strcmp(argv[i], "-o") == 0) {
+        } else if (strcmp(argv[i], "-o") == 0) {
             outputPath = argv[++i];
-        } else if(strcmp(argv[i], "-f") == 0) {
-            eofChar = (unsigned char)strtol(argv[++i], NULL, 10);
-        } else if(!textPath) {
+        } else if (strcmp(argv[i], "-f") == 0) {
+            eofChar = (unsigned char) strtol(argv[++i], NULL, 10);
+        } else if (!textPath) {
             textPath = argv[i];
         } else
             csvPath = argv[i];
     }
 
-    if(!textPath || !csvPath)
-    {
+    if (!textPath || !csvPath) {
         fprintf(stderr, "USAGE: %s [-e] [-d] [-f <eofChar>] [-o <outptPath>]"
                         " <textPath> <csvPath>\n", argv[0]);
         return EXIT_FAILURE;
@@ -359,8 +389,7 @@ int main(int argc, char** argv)
 
     /* ---------------------------- BUILDING TREE --------------------------- */
     double* frequencies = csvToFrequencies(csvPath);
-    if(!frequencies)
-    {
+    if (!frequencies) {
         fprintf(stderr, "Could not parse CSV. Either the format is not valid "
                         "or there was a memory error. Aborting.\n");
         return EXIT_FAILURE;
@@ -370,16 +399,16 @@ int main(int argc, char** argv)
 
     /* ----------------------------- (DE)CODING ----------------------------- */
     bool success;
-    if(decode)
+    if (decode)
         success = readAndDecode(textPath, huffmanTree, outputPath, eofChar);
     else
-        success = readAndEncode(textPath, huffmanTree, outputPath, debug, eofChar);
+        success = readAndEncode(textPath, huffmanTree, outputPath, debug,
+                                eofChar);
 
 
     free(frequencies);
     ctFree(huffmanTree);
-    if(!success)
-    {
+    if (!success) {
         fprintf(stderr, "Some error occured. Aborting.\n");
         return EXIT_FAILURE;
     }

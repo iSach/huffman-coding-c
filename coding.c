@@ -23,3 +23,7 @@ bool encode(const CharVector* source, BinarySequence* dest, const CodingTree* tr
 
     return success;
 }
+
+bool decode(const BinarySequence* source, CharVector* dest, const CodingTree* tree, unsigned char eof) {
+    return false;
+}
