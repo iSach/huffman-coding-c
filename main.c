@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
-#include <math.h>
 
+#include "BinarySequence.h"
 #include "CodingTree.h"
 #include "CharVector.h"
 #include "coding.h"
@@ -274,8 +274,33 @@ static bool readAndEncode(const char* inputpath, const CodingTree* tree,
     return success;
 }
 
+static void bise_print(BinarySequence* bs) {
+    size_t size = biseGetNumberOfBits(bs);
+    for(size_t i = 0; i < size; i++) {
+        Binary b = biseGetBit(bs, i);
+        printf("%d", b == ONE ? 1 : 0);
+    }
+    printf("\n");
+}
+
+int main3() {
+
+    BinarySequence* bin = biseCreate();
+    biseAddBit(bin, ONE);
+    biseAddBit(bin, ONE);
+    biseAddBit(bin, ONE);
+    biseAddBit(bin, ONE);
+
+    BinarySequence* cop = biseCopy(bin);
+
+    bise_print(bin);
+    bise_print(cop);
+
+    return EXIT_SUCCESS;
+}
+
 // test
-int main() {
+int main2() {
     size_t len = 5;
     int* numbers = malloc(len * sizeof(int));
     for (int i = 0; i < len; i++) {
@@ -326,6 +351,8 @@ int main() {
 
     a = (int*) pqExtractMin(queue);
     printf("%d\n", (a != NULL ? *a : -1));
+
+    return 0;
 }
 
 
@@ -354,7 +381,7 @@ int main() {
  * RETURN
  * EXIT_SUCCESS|EXIT_FAILURE
  * ------------------------------------------------------------------------- */
-int main2(int argc, char** argv) {
+int main(int argc, char** argv) {
 
     /* ---------------------- PARSING COMMAND LINE ARGS --------------------- */
     if (argc < 2 || argc > 7) {
@@ -402,16 +429,15 @@ int main2(int argc, char** argv) {
 
     CodingTree* huffmanTree = ctHuffman(frequencies);
 
-    printf("a\n");
+    ctCodingTable(huffmanTree);
 
-    /* ----------------------------- (DE)CODING ----------------------------- */
+    /*----------------------------- (DE)CODING -----------------------------*/
     bool success;
     if (decode)
         success = readAndDecode(textPath, huffmanTree, outputPath, eofChar);
     else
         success = readAndEncode(textPath, huffmanTree, outputPath, debug,
                                 eofChar);
-
 
     free(frequencies);
     ctFree(huffmanTree);

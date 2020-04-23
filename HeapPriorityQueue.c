@@ -1,6 +1,5 @@
 #include "PriorityQueue.h"
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 
 struct priority_queue_t {
@@ -103,20 +102,17 @@ PriorityQueue* pqCreate(const void** entries, const double* priorities,
                         size_t length) {
     PriorityQueue* pQueue = malloc(sizeof(PriorityQueue));
     if (pQueue == NULL) {
-        perror("Error in allocating memory.");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     const void** heap_array = malloc(length * sizeof(void*));
     if (heap_array == NULL) {
-        perror("Error in allocating memory.");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     double* priorities_array = malloc(length * sizeof(double));
     if (priorities_array == NULL) {
-        perror("Error in allocating memory.");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     pQueue->heap = heap_array;
@@ -125,13 +121,13 @@ PriorityQueue* pqCreate(const void** entries, const double* priorities,
     pQueue->max_size = length;
 
     // Copy arrays.
-    for (int i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++) {
         heap_array[i] = entries[i];
         priorities_array[i] = priorities[i];
     }
 
     // Build min-heap
-    for (int i = floor(((double) length) / 2); i >= 0; i--) {
+    for (int i = (int) floor(((double) length) / 2); i > 0; i--) {
         min_heapify(pQueue, i);
     }
 
@@ -145,23 +141,7 @@ void pqFree(PriorityQueue* pQueue) {
 }
 
 bool pqInsert(PriorityQueue* pQueue, const void* entry, double priority) {
-    /* // reallocate if needed
-     if (pQueue->length + 1 > pQueue->max_size) {
-         size_t new_max_size = 2 * pQueue->max_size;
-         pQueue->heap = realloc(pQueue->heap, new_max_size * sizeof(void*));
-         if (pQueue->heap == NULL) {
-             perror("Error in reallocating memory.");
-             exit(EXIT_FAILURE);
-         }
-         pQueue->priorities = realloc(pQueue->priorities,
-                                      new_max_size * sizeof(double));
-         if (pQueue->priorities == NULL) {
-             perror("Error in reallocating memory.");
-             exit(EXIT_FAILURE);
-         }
-         pQueue->max_size = new_max_size;
-     }*/
-    if (pQueue->length + 1 > pQueue->max_size) {
+    if (pQueue->length >= pQueue->max_size) {
         return false;
     }
 

@@ -4,11 +4,15 @@
 #include "PriorityQueue.h"
 #include "CodingTree.h"
 
-static const size_t ASCII_SIZE = 128;
+static const size_t ASCII_SIZE = 127;
+
+static void ctCodingTable_aux(const CodingTree* tree, BinarySequence** table,
+                              BinarySequence* bin_seq);
 
 struct coding_tree_t {
-    char* character;
-    int frequency; // ???
+    char character;
+    double frequency;
+
     CodingTree* left;
     CodingTree* right;
 };
@@ -20,8 +24,7 @@ CodingTree* ctCreateLeaf(char c, double frequency) {
     }
     leaf->left = NULL;
     leaf->right = NULL;
-    leaf->character = malloc(sizeof(char));
-    leaf->character[0] = c;
+    leaf->character = c;
     leaf->frequency = frequency;
     return leaf;
 }
@@ -31,68 +34,79 @@ CodingTree* ctMerge(CodingTree* leftTree, CodingTree* rightTree) {
     if (parent == NULL) {
         return NULL;
     }
+
     parent->right = rightTree;
     parent->left = leftTree;
     parent->frequency = leftTree->frequency + rightTree->frequency;
 
-    char* left_char;
-    char* right_char;
-
-    parent->character = malloc(sizeof(left_char) + sizeof(right_char));
-    if (parent->character == NULL) {
-        return NULL;
-    }
-
-    int i = 0;
-    int j = 0;
-
-    while (left_char[i] != '\0' && right_char[i] != '\0') {
-        if (left_char[i] != '\0' && right_char[i] != '\0') {
-            parent->character[j] = left_char[i];
-            parent->character[++j] = right_char[i];
-        } else if (left_char[i] == '\0') {
-            parent->character[j] = right_char[i];
-        } else {
-            parent->character[j] = left_char[i];
-        }
-        j++;
-        i++;
-    }
     return parent;
 }
 
 void ctFree(CodingTree* tree) {
-    free(tree->character);
     free(tree->left);
     free(tree->right);
     free(tree);
 }
 
 CodingTree* ctHuffman(const double* frequencies) {
-    int** ascii_chars = malloc(ASCII_SIZE * sizeof(int*));
-    for (int i = 0; i < ASCII_SIZE; i++) {
-        ascii_chars[i] = &i;
+    CodingTree** ascii_chars = malloc(ASCII_SIZE * sizeof(CodingTree*));
+
+    if (ascii_chars == NULL) {
+        return NULL;
     }
 
-    PriorityQueue* Q = pqCreate((const void**) ascii_chars, frequencies,
-                                ASCII_SIZE);
+    for (size_t c = 0; c < ASCII_SIZE; c++) {
+        CodingTree* leaf = ctCreateLeaf(c, frequencies[c]);
+        ascii_chars[c] = leaf;
+    }
 
-    for (int i = 0; i < ASCII_SIZE - 1; i++) {
-        int** left = (int**) pqExtractMin(Q);
-        CodingTree* left_leaf = ctCreateLeaf(left[0][0], left[0][1]);
+    PriorityQueue* queue = pqCreate((const void**) ascii_chars, frequencies,
+                                    ASCII_SIZE);
 
-        int** right = (int**) pqExtractMin(Q);
-        CodingTree* right_leaf = ctCreateLeaf(right[0][0], right[0][1]);
+    while (pqSize(queue) > 1) {
+        CodingTree* left_leaf = (CodingTree*) pqExtractMin(queue);
+        CodingTree* right_leaf = (CodingTree*) pqExtractMin(queue);
 
         CodingTree* parent = ctMerge(left_leaf, right_leaf);
-        pqInsert(Q, parent, parent->frequency);
+
+        pqInsert(queue, parent, parent->frequency);
     }
 
-    return (CodingTree*) pqExtractMin(Q);
+    CodingTree* final_tree = (CodingTree*) pqExtractMin(queue);
+
+    pqFree(queue);
+
+    return final_tree;
 }
 
 BinarySequence** ctCodingTable(const CodingTree* tree) {
-    return NULL;
+    BinarySequence** table = calloc(ASCII_SIZE, sizeof(BinarySequence*));
+
+    ctCodingTable_aux(tree, table, NULL);
+
+    return table;
+}
+
+static void ctCodingTable_aux(const CodingTree* tree, BinarySequence** table,
+                              BinarySequence* bin_seq) {
+    if (tree == NULL || table == NULL) return;
+
+    // Reached a leaf
+    if (tree->left == NULL && tree->right == NULL) {
+        char c = tree->character;
+        table[(size_t) c] = bin_seq;
+    } else {
+        BinarySequence* left_seq = bin_seq == NULL ? biseCreate() :
+                                   biseCopy(bin_seq);
+        biseAddBit(left_seq, ZERO);
+        ctCodingTable_aux(tree->left, table, left_seq);
+
+        BinarySequence* right_seq = bin_seq == NULL ? biseCreate() :
+                                    biseCopy(bin_seq);
+        biseAddBit(right_seq, ONE);
+        ctCodingTable_aux(tree->right, table, right_seq);
+        free(bin_seq);
+    }
 }
 
 /* ------------------------------------------------------------------------- *
@@ -109,6 +123,23 @@ BinarySequence** ctCodingTable(const CodingTree* tree) {
  * ------------------------------------------------------------------------- */
 Decoded ctDecode(const CodingTree* tree, const BinarySequence* encodedSequence,
                  size_t start) {
-    Decoded d;
-    return d;
+    Binary bin;
+    size_t offset = 0;
+    const CodingTree* node = tree;
+
+    while (node->left != NULL && node->right != NULL) {
+        bin = biseGetBit(encodedSequence, start + offset);
+        if (bin == ZERO) {
+            node = node->left;
+        } else if (bin == ONE) {
+            node = node->right;
+        }
+        offset++;
+    }
+
+    Decoded decoded;
+    decoded.nextBit = start + offset;
+    decoded.character = node->character;
+
+    return decoded;
 }

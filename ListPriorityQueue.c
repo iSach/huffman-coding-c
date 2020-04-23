@@ -1,11 +1,12 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include "PriorityQueue.h"
 
 typedef struct node_t Node;
+
+static Node* node_create(const void* entry, double priority);
 
 // Represents a linked node.
 struct node_t {
@@ -29,7 +30,7 @@ struct priority_queue_t {
  * @param priority Node associated priority
  * @return a pointer to the new node created
  */
-Node* node_create(const void* entry, double priority) {
+static Node* node_create(const void* entry, double priority) {
     Node* new_node = malloc(sizeof(Node));
 
     if (new_node == NULL) {
@@ -52,12 +53,11 @@ PriorityQueue* pqCreate(const void** entries, const double* priorities,
     pq->size = 0;
 
     if (pq == NULL) {
-        perror("Failed to allocate memory.");
         return NULL;
     }
 
     // Insert the entries.
-    for (int i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++) {
         bool inserted = pqInsert(pq, entries[i], priorities[i]);
         if (!inserted) {
             return pq;
@@ -81,8 +81,6 @@ bool pqInsert(PriorityQueue* pQueue, const void* entry, double priority) {
     if (pQueue->size == pQueue->max_size) {
         return false;
     }
-
-    int* data = (int*) entry;
 
     Node* element = node_create(entry, priority);
 
