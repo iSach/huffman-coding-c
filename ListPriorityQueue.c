@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdbool.h>
+
 #include "PriorityQueue.h"
 
 typedef struct node_t Node;

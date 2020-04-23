@@ -3,13 +3,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
-#include "BinarySequence.h"
 #include "CodingTree.h"
 #include "CharVector.h"
 #include "coding.h"
-
-#include "PriorityQueue.h"
 
 static const size_t ASCII_SIZE = 127;
 static const size_t BUFFER_SIZE = 1024;
@@ -183,7 +181,13 @@ static bool readAndDecode(const char* inputpath, const CodingTree* tree,
         success = false;
     }
 
+    printf("HUFFMAN:\n");
+    clock_t start = clock();
     success = success && decode(source, dest, tree, eof);
+    clock_t end = clock();
+    float seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("%lf\n", seconds);
+    printf("\n\n\n");
 
     if (!success)
         fprintf(stderr, "Could not decode binary sequence from file '%s'.\n",
@@ -274,87 +278,6 @@ static bool readAndEncode(const char* inputpath, const CodingTree* tree,
     return success;
 }
 
-static void bise_print(BinarySequence* bs) {
-    size_t size = biseGetNumberOfBits(bs);
-    for(size_t i = 0; i < size; i++) {
-        Binary b = biseGetBit(bs, i);
-        printf("%d", b == ONE ? 1 : 0);
-    }
-    printf("\n");
-}
-
-int main3() {
-
-    BinarySequence* bin = biseCreate();
-    biseAddBit(bin, ONE);
-    biseAddBit(bin, ONE);
-    biseAddBit(bin, ONE);
-    biseAddBit(bin, ONE);
-
-    BinarySequence* cop = biseCopy(bin);
-
-    bise_print(bin);
-    bise_print(cop);
-
-    return EXIT_SUCCESS;
-}
-
-// test
-int main2() {
-    size_t len = 5;
-    int* numbers = malloc(len * sizeof(int));
-    for (int i = 0; i < len; i++) {
-        numbers[i] = i + 1;
-    }
-
-    const int** entries = malloc(len * sizeof(int*));
-    for (int i = 0; i < len; i++) {
-        entries[i] = &(numbers[i]);
-    }
-
-    double* prior = malloc(len * sizeof(double));
-    prior[0] = 2.1;
-    prior[1] = 7.3;
-    prior[2] = 4.5;
-    prior[3] = 1.7;
-    prior[4] = 3.6;
-
-    PriorityQueue* queue = pqCreate((const void**) entries, prior, len);
-
-    // Extracting 4
-    int* a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
-
-    // Extracting 1
-    a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
-
-    // insert 7
-    int new = 7;
-    pqInsert(queue, &new, 3.7);
-
-    // extract 5
-    a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
-
-    // extract 7
-    a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
-
-    // extract 3
-    a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
-
-    // extract 2
-    a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
-
-    a = (int*) pqExtractMin(queue);
-    printf("%d\n", (a != NULL ? *a : -1));
-
-    return 0;
-}
-
 
 /* ------------------------------------------------------------------------- *
  * NAME
@@ -419,6 +342,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+
     /* ---------------------------- BUILDING TREE --------------------------- */
     double* frequencies = csvToFrequencies(csvPath);
     if (!frequencies) {
@@ -429,15 +353,14 @@ int main(int argc, char** argv) {
 
     CodingTree* huffmanTree = ctHuffman(frequencies);
 
-    ctCodingTable(huffmanTree);
-
-    /*----------------------------- (DE)CODING -----------------------------*/
+    /* ----------------------------- (DE)CODING ----------------------------- */
     bool success;
     if (decode)
         success = readAndDecode(textPath, huffmanTree, outputPath, eofChar);
     else
         success = readAndEncode(textPath, huffmanTree, outputPath, debug,
                                 eofChar);
+
 
     free(frequencies);
     ctFree(huffmanTree);

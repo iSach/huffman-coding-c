@@ -289,3 +289,14 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.gitignore.io/api/macos,cmake,clion,emacs,windows,jetbrains+all,visualstudiocode
+
+to_post/*
+to_post
+
+tests
+tests/*
+
+fixe_largeur
+fixe_largeur/*
+
+*.tar.gz

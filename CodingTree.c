@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+#include <stdio.h>
+
 #include "PriorityQueue.h"
 #include "CodingTree.h"
 
@@ -19,13 +21,16 @@ struct coding_tree_t {
 
 CodingTree* ctCreateLeaf(char c, double frequency) {
     CodingTree* leaf = malloc(sizeof(CodingTree));
+
     if (leaf == NULL) {
         return NULL;
     }
+
     leaf->left = NULL;
     leaf->right = NULL;
     leaf->character = c;
     leaf->frequency = frequency;
+
     return leaf;
 }
 
@@ -79,14 +84,29 @@ CodingTree* ctHuffman(const double* frequencies) {
     CodingTree* final_tree = (CodingTree*) pqExtractMin(queue);
 
     pqFree(queue);
+    free(ascii_chars);
 
     return final_tree;
+}
+
+static void bise_print(BinarySequence* bs) {
+    for(int i = 0; i < biseGetNumberOfBits(bs); i++) {
+        printf("%d", biseGetBit(bs, i));
+    }
 }
 
 BinarySequence** ctCodingTable(const CodingTree* tree) {
     BinarySequence** table = calloc(ASCII_SIZE, sizeof(BinarySequence*));
 
-    ctCodingTable_aux(tree, table, NULL);
+    for(char i = 0; i < ASCII_SIZE; i++) {
+        BinarySequence* sequence = biseCreate();
+        biseAddByte(sequence, i);
+        printf("\n");
+        printf("%c\n", i);
+        bise_print(sequence);
+        printf("\n");
+        table[i] = sequence;
+    }
 
     return table;
 }
