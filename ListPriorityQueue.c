@@ -104,6 +104,9 @@ void pqFree(PriorityQueue* pQueue){
 }
 
 bool pqInsert(PriorityQueue* pQueue, const void* entry, double priority){
+    if(pQueue->size == pQueue->length){
+        return false;
+    }
     Element* element = elementCreate(priority,pQueue->size + 1, entry);
     if(element== NULL){
         return false;
@@ -125,7 +128,6 @@ bool pqInsert(PriorityQueue* pQueue, const void* entry, double priority){
         tmp->next = element;
     }
     pQueue->size++;
-    pQueue->length++;
     return true;
 }
 
