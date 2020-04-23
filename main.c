@@ -300,27 +300,32 @@ int main() {
     int* a = (int*) pqExtractMin(queue);
     printf("%d\n", *a);
 
-    // Extracting 4
+    // Extracting 1
     a = (int*) pqExtractMin(queue);
     printf("%d\n", *a);
 
+    // insert 7
     int new = 7;
     pqInsert(queue, &new, 3.7);
 
+    // extract 5
+    a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
+
+    // extract 7
+    a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
+
+    // extract 3
+    a = (int*) pqExtractMin(queue);
+    printf("%d\n", *a);
+
+    // extract 2
     a = (int*) pqExtractMin(queue);
     printf("%d\n", *a);
 
     a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
-
-    a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
-
-    a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
-
-    a = (int*) pqExtractMin(queue);
-    printf("%d\n", *a);
+    printf("%d\n", (a != NULL ? *a : -1));
 }
 
 
