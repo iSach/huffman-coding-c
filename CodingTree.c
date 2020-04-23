@@ -51,12 +51,12 @@ CodingTree* ctMerge(CodingTree* leftTree, CodingTree* rightTree){
     int i = 0;
     int j = 0;
 
-    while(left_char[i] != NULL && right_char[i] != NULL){
-        if(left_char[i] != NULL && right_char[i] != NULL){
+    while(left_char[i] != '\0' && right_char[i] != '\0'){
+        if(left_char[i] != '\0' && right_char[i] != '\0'){
             parent->character[j] = left_char[i];
             parent->character[++j] = right_char[i];
         }
-        else if(left_char[i] == NULL){
+        else if(left_char[i] == '\0'){
             parent->character[j] = right_char[i];
         }
         else{
