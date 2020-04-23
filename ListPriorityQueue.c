@@ -71,6 +71,7 @@ void pqFree(PriorityQueue* pQueue) {
     while (pQueue->head != NULL) {
         Node* tmp = pQueue->head;
         pQueue->head = tmp->next;
+        free((void*) tmp->data);
         free(tmp);
     }
 
