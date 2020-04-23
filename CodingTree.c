@@ -109,7 +109,7 @@ static void ctCodingTable_aux(const CodingTree* tree, BinarySequence** table,
                                     biseCopy(bin_seq);
         biseAddBit(right_seq, ONE);
         ctCodingTable_aux(tree->right, table, right_seq);
-        free(bin_seq);
+        biseFree(bin_seq);
     }
 }
 
