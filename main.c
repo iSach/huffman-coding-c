@@ -296,14 +296,15 @@ int main() {
 
     PriorityQueue* queue = pqCreate((const void**) entries, prior, len);
 
+    // Extracting 4
     int* a = (int*) pqExtractMin(queue);
     printf("%d\n", *a);
 
-    int new = 7;
-
+    // Extracting 4
     a = (int*) pqExtractMin(queue);
     printf("%d\n", *a);
 
+    int new = 7;
     pqInsert(queue, &new, 3.7);
 
     a = (int*) pqExtractMin(queue);
@@ -386,7 +387,6 @@ int main2(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-
     /* ---------------------------- BUILDING TREE --------------------------- */
     double* frequencies = csvToFrequencies(csvPath);
     if (!frequencies) {
@@ -396,6 +396,8 @@ int main2(int argc, char** argv) {
     }
 
     CodingTree* huffmanTree = ctHuffman(frequencies);
+
+    printf("a\n");
 
     /* ----------------------------- (DE)CODING ----------------------------- */
     bool success;
