@@ -1,12 +1,14 @@
 # Huffman Coding
 This project was done as a class project for the following class:
 Data Structures and Algorithms (INFO0902-1)
-It is a C implementation of the huffman coding algorithm.
+It is a C implementation of the huffman coding algorithm.  
+
 Grade: ?/20
+
 ### Running
 First, compile:  
-`gcc -o huffman main.c CodingTree.c BinarySequence.c CharVector.c coding.c decoding.c HeapPriorityQueue.c`
-Then, run:  
+`gcc -o huffman main.c CodingTree.c BinarySequence.c CharVector.c coding.c decoding.c HeapPriorityQueue.c`  
+Then, run:   
 ` [-e] [-d] [-f <eof_char>] [-o <outptPath>] <textPath> <csvPath>`  
 * -e To encode
 * -d To decode
