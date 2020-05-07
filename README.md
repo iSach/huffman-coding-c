@@ -9,7 +9,7 @@ Grade: ?/20
 First, compile:  
 `gcc -o huffman main.c CodingTree.c BinarySequence.c CharVector.c coding.c decoding.c HeapPriorityQueue.c`  
 Then, run:   
-` [-e] [-d] [-f <eof_char>] [-o <outptPath>] <textPath> <csvPath>`  
+`./huffman [-e] [-d] [-f <eof_char>] [-o <outptPath>] <textPath> <csvPath>`  
 * -e To encode
 * -d To decode
 * <eof_char> the end of sequence character (Default: 28)
