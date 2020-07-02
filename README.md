@@ -3,7 +3,7 @@ This project was done as a class project for the following class:
 Data Structures and Algorithms (INFO0902-1)
 It is a C implementation of the huffman coding algorithm.  
 
-Grade: ?/20
+Grade: 16/20
 
 ### Running
 First, compile:  
